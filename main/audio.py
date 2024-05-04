@@ -10,6 +10,7 @@ class AudioRecorder:
         self.CHUNK = 1024
         self.output_filename = "human.wav"
         self.audio = pyaudio.PyAudio()
+        
 
     def start_recording(self):
         self.frames = []
@@ -23,13 +24,14 @@ class AudioRecorder:
         while True:
             data = stream.read(self.CHUNK)
             self.frames.append(data)
-            if keyboard.is_pressed('q'):
-                print('You Pressed A Key!')
+            if keyboard.is_pressed('space'):
+                print('You Pressed Space Key!')
                 break
 
         print("Recording finished.")
         stream.stop_stream()
         stream.close()
+        self.save_recording()
 
     def save_recording(self):
         wave_file = wave.open(self.output_filename, 'wb')

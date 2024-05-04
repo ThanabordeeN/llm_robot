@@ -1,0 +1,10 @@
+edge_tts
+pygame
+pyaudio
+wave
+keyboard
+groq
+python-dotenv
+ollama
+transformers
+torch

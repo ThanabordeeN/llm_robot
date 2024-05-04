@@ -1,29 +1,48 @@
 import os
 from groq import Groq
-import google.generativeai as genai
 import dotenv
 import re
+import ollama
 dotenv.load_dotenv()
 class Robot:
+    """
+    Represents an AI robot that can chat with users.
+    Robot.groq : Groq client used for making API requests.
+    ollama.ollama : Ollama client used for making API requests.
+
+    Attributes:
+    - client: The Groq client used for making API requests.
+    - history: A list of chat history containing user and assistant messages.
+    """
+
     def __init__(self):
         self.client = Groq(
             api_key=os.environ.get("GROQ_API_KEY"),
         )
-        genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-        self.model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest")
+        self.history_gemini = ''
         self.history = []
-    def chat(self, messages):
+
+    def gorq(self, messages):
+        """
+        Simulates a chat conversation between the user and the robot.
+
+        Parameters:
+        - messages: A string representing the user's messages.
+
+        Returns:
+        - result: A string representing the assistant's response.
+        """
         if self.history == []:
             self.history = [
                 {
                 "role": "system",
-                "content": """Your Name is ปิงปอง,You can answer in Thai and English,but your users are Thai. You should answer in Thai only and English if the user wants English , Do not answer China""",
+                "content": """You can answer in Thai and English, but your users are Thai. You should answer in Thai only and English if the user wants English""",
                 },
                 {
                     "role": "user",
                     "content": messages,
                 }
-                ]
+            ]
         else:
             self.history.append({"role": "user", "content": messages})
         result = self.client.chat.completions.create(
@@ -33,20 +52,43 @@ class Robot:
         result = result.choices[0].message.content
         self.history.append({"role": "assistant", "content": result})
         return result
-        
-    def gemini(self, messages):
-        prompt = f"""
-        Your Name is "ปิงปอง",
-        You can answer in Thai and English, but your users are Thai. You should answer in Thai only and English if the user wants English , Do not answer China
-        {messages}
+
+    def ollama(self, messages):
         """
-        result = self.model.generate_content(prompt)
-        result = self.clean_message(result.text)
-        
-        return result
-        
+        Simulates a chat conversation between the user and the Ollama model.
+
+        Parameters:
+        - messages: A string representing the user's messages.
+
+        Returns:
+        - response: A string representing the Ollama model's response.
+        """
+        if self.history == []:
+            self.history = [
+                {
+                "role": "system",
+                "content": """You can answer in Thai and English, but your users are Thai. You should answer in Thai only and English if the user wants English""",
+                },
+                {
+                    "role": "user",
+                    "content": messages,
+                }
+            ]
+        else:
+            self.history.append({"role": "user", "content": messages})
+        response = ollama.chat(model='llama3:8b-instruct-q5_K_S', messages=self.history)
+        return response['message']['content']
+
     def clean_message(self, msg):
-        # Remove all emojis
+        """
+        Cleans a message by removing emojis and whitespace.
+
+        Parameters:
+        - msg: A string representing the message to be cleaned.
+
+        Returns:
+        - cleaned_msg: A string representing the cleaned message.
+        """
         emoji_pattern = re.compile("["
                                 u"\U0001F600-\U0001F64F"  # emoticons
                                 u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -67,12 +109,8 @@ class Robot:
                                 u"\ufe0f"  # dingbats
                                 u"\u3030"
                                 "]+", flags=re.UNICODE)
-        msg = emoji_pattern.sub(r'', msg)
-
-        # Remove all whitespace
-        msg = msg.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').strip()
-
-        return msg
-    
+        cleaned_msg = emoji_pattern.sub(r'', msg)
+        cleaned_msg = cleaned_msg.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').strip()
+        return cleaned_msg
 
 

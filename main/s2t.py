@@ -1,9 +1,10 @@
 from transformers import pipeline
 import torch
+import os
 
 class speech_recognition:
     def __init__(self) -> None:
-        MODEL_NAME = "biodatlab/whisper-th-medium-combined"  # specify the model name
+        MODEL_NAME = "biodatlab/whisper-th-small-combined"  # specify the model name
         lang = "th"  # change to Thai langauge
 
         device = 0 if torch.cuda.is_available() else "cpu"
@@ -19,6 +20,7 @@ class speech_recognition:
         )
     def get_text(self, audio_path):
         self.text = self.pipe(audio_path)["text"]
+        os.remove("human.wav")
         return self.text
     
 
